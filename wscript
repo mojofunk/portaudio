@@ -113,12 +113,10 @@ def build(bld):
 	src/os/win/pa_win_hostapis.c
 	src/os/win/pa_win_util.c
 	src/os/win/pa_win_waveformat.c
-	src/os/win/pa_win_wdmks_utils.c
 	src/os/win/pa_win_coinitialize.c
+	src/os/win/pa_x86_plain_converters.c
 	'''
 
-	#src/os/win/pa_win_wdmks_utils.c
-	#src/os/win/pa_x86_plain_converters.c
 
 	dsound_includes = '''
 	include/pa_win_ds.h
@@ -136,6 +134,7 @@ def build(bld):
 
 	wdmks_sources = '''
 	src/hostapi/wdmks/pa_win_wdmks.c
+	src/os/win/pa_win_wdmks_utils.c
 	'''
 
 	# build pkgconfig file
@@ -165,10 +164,61 @@ def build(bld):
 
 	if bld.env['WITH_TESTS']:
 		test_sources = '''
+			test/pa_minlat.c
 			test/patest1.c
+			test/patest_buffer.c
+			test/patest_callbackstop.c
+			test/patest_clip.c
+			test/patest_converters.c
+			test/patest_dither.c
+			test/patest_hang.c
+			test/patest_in_overflow.c
+			test/patest_latency.c
+			test/patest_leftright.c
 			test/patest_longsine.c
+			test/patest_many.c
+			test/patest_maxsines.c
+			test/patest_mono.c
+			test/patest_multi_sine.c
+			test/patest_out_underflow.c
+			test/patest_prime.c
+			test/patest_read_record.c
+			test/patest_ringmix.c
+			test/patest_sine8.c
+			test/patest_sine_channelmaps.c
+			test/patest_sine_formats.c
+			test/patest_sine_srate.c
+			test/patest_sine_time.c
+			test/patest_start_stop.c
+			test/patest_stop.c
+			test/patest_stop_playout.c
+			test/patest_suggested_vs_streaminfo_latency.c
+			test/patest_sync.c
+			test/patest_timing.c
+			test/patest_toomanysines.c
+			test/patest_two_rates.c
+			test/patest_underflow.c
+			test/patest_wire.c
+			test/patest_write_stop.c
+			'''.split()
+
+		wmme_test_sources = '''
+			test/patest_wmme_find_best_latency_params.c
+			test/patest_wmme_low_level_latency_params.c
+			'''.split()
+
+		if bld.env['WITH_WMME']:
+			test_sources+=wmme_test_sources
+
+		dsound_test_sources = '''
+			test/patest_dsound_find_best_latency_params.c
+			test/patest_dsound_low_level_latency_params.c
+			test/patest_dsound_surround.c
 			'''.split()
 		
+		if bld.env['WITH_DIRECTX']:
+			test_sources+=dsound_test_sources
+
 		for test_src in test_sources:
 
 			bld(features = 'c cprogram',
