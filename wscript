@@ -13,6 +13,9 @@ def options(opt):
 	opt.add_option('--platform', type='string', default='auto',
 		help='Specify the target for cross-compiling [auto,mingw]')
 
+	opt.add_option('--enable-static', action='store_true', default=False, dest='enable_static',
+		help='Build a static version of Portaudio library')
+
 	opt.add_option('--with-tests', action='store_true', default=False, dest='with_tests',
 		help='Build Portaudio tests')
 
@@ -49,6 +52,9 @@ def configure(conf):
 			lib='winmm',
 			mandatory=True,
 			uselib_store='WINMM')
+
+	if Options.options.enable_static:
+		conf.env['ENABLE_STATIC'] = True
 
 	if Options.options.with_tests:
 		conf.env['WITH_TESTS'] = True
@@ -175,6 +181,16 @@ def build(bld):
 		  vnum = '2.0.0'
 		  )
 
+	if bld.env['ENABLE_STATIC']:
+		obj = bld(features = 'c cstlib',
+				includes = ['include', 'src/common', 'src/os/win'],
+				source = common_sources + windows_sources,
+				uselib = [ 'OLE', 'WINMM' ] + uselib_extra,
+				defines = use_defines,
+				target = 'portaudio',
+				name = 'portaudio-static',
+				vnum = '2.0.0'
+				)
 
 	if bld.env['WITH_TESTS']:
 		test_sources = '''
