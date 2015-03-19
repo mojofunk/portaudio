@@ -19,6 +19,9 @@ def options(opt):
 	opt.add_option('--with-examples', action='store_true', default=False, dest='with_examples',
 		help='Build Portaudio example programs')
 
+	opt.add_option('--with-wmme', action='store_true', default=False, dest='with_wmme',
+		help='Build WMME support')
+
 	opt.add_option('--with-directx', action='store_true', default=False, dest='with_directx',
 		help='Build DirectX support')
 
@@ -52,6 +55,9 @@ def configure(conf):
 
 	if Options.options.with_examples:
 		conf.env['WITH_EXAMPLES'] = True
+
+	if Options.options.with_wmme:
+		conf.env['WITH_WMME'] = True
 
 	if Options.options.with_directx:
 		conf.env['WITH_DIRECTX'] = True
@@ -117,6 +123,13 @@ def build(bld):
 	src/os/win/pa_x86_plain_converters.c
 	'''
 
+	wmme_includes = '''
+	include/pa_win_wmme.h
+	'''
+
+	wmme_sources = '''
+	src/hostapi/wmme/pa_win_wmme.c
+	'''
 
 	dsound_includes = '''
 	include/pa_win_ds.h
@@ -137,8 +150,9 @@ def build(bld):
 	src/os/win/pa_win_wdmks_utils.c
 	'''
 
-	# build pkgconfig file
-	# set defines based on options
+	if bld.env['WITH_WMME']:
+		windows_sources += wmme_sources
+		use_defines += ['PA_USE_WMME=1']
 	
 	if bld.env['WITH_DIRECTX']:
 		windows_sources += dsound_sources
@@ -249,6 +263,9 @@ def build(bld):
 	# install headers
 
 	bld.install_files ('${PREFIX}/include', 'include/portaudio.h')
+
+	if bld.env['WITH_WMME']:
+		bld.install_files ('${PREFIX}/include', 'include/pa_win_wmme.h')
 
 	if bld.env['WITH_DIRECTX']:
 		bld.install_files ('${PREFIX}/include', 'include/pa_win_ds.h')
