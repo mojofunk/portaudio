@@ -53,24 +53,19 @@ def configure(conf):
 			mandatory=True,
 			uselib_store='WINMM')
 
-	if Options.options.enable_static:
-		conf.env['ENABLE_STATIC'] = True
+	conf.env.ENABLE_STATIC = Options.options.enable_static
 
-	if Options.options.with_tests:
-		conf.env['WITH_TESTS'] = True
+	conf.env.WITH_TESTS = Options.options.with_tests
 
-	if Options.options.with_examples:
-		conf.env['WITH_EXAMPLES'] = True
+	conf.env.WITH_EXAMPLES = Options.options.with_examples
 
-	if Options.options.with_wmme:
-		conf.env['WITH_WMME'] = True
+	conf.env.WITH_WMME = Options.options.with_wmme
 
-	if Options.options.with_directx:
-		conf.env['WITH_DIRECTX'] = True
+	conf.env.WITH_DIRECTX = Options.options.with_directx
 
-	if Options.options.with_wdmks:
-		conf.env['WITH_WDMKS'] = True
+	conf.env.WITH_WDMKS = Options.options.with_wdmks
 
+	if conf.env.WITH_WDMKS:
 		conf.check(compiler='c',
 				lib='setupapi',
 				mandatory=True,
@@ -156,15 +151,15 @@ def build(bld):
 	src/os/win/pa_win_wdmks_utils.c
 	'''
 
-	if bld.env['WITH_WMME']:
+	if bld.env.WITH_WMME:
 		windows_sources += wmme_sources
 		use_defines += ['PA_USE_WMME=1']
 	
-	if bld.env['WITH_DIRECTX']:
+	if bld.env.WITH_DIRECTX:
 		windows_sources += dsound_sources
 		use_defines += ['PA_USE_DS=1']
 
-	if bld.env['WITH_WDMKS']:
+	if bld.env.WITH_WDMKS:
 		windows_sources += wdmks_sources
 		use_defines += ['PA_USE_WDMKS=1']
 		uselib_extra += ['SETUPAPI']
@@ -181,7 +176,7 @@ def build(bld):
 		  vnum = '2.0.0'
 		  )
 
-	if bld.env['ENABLE_STATIC']:
+	if bld.env.ENABLE_STATIC:
 		obj = bld(features = 'c cstlib',
 				includes = ['include', 'src/common', 'src/os/win'],
 				source = common_sources + windows_sources,
@@ -192,7 +187,7 @@ def build(bld):
 				vnum = '2.0.0'
 				)
 
-	if bld.env['WITH_TESTS']:
+	if bld.env.WITH_TESTS:
 		test_sources = '''
 			test/pa_minlat.c
 			test/patest1.c
@@ -237,7 +232,7 @@ def build(bld):
 			test/patest_wmme_low_level_latency_params.c
 			'''.split()
 
-		if bld.env['WITH_WMME']:
+		if bld.env.WITH_WMME:
 			test_sources+=wmme_test_sources
 
 		dsound_test_sources = '''
@@ -246,7 +241,7 @@ def build(bld):
 			test/patest_dsound_surround.c
 			'''.split()
 		
-		if bld.env['WITH_DIRECTX']:
+		if bld.env.WITH_DIRECTX:
 			test_sources+=dsound_test_sources
 
 		for test_src in test_sources:
@@ -260,7 +255,7 @@ def build(bld):
 				 
 			)
 
-	if bld.env['WITH_EXAMPLES']:
+	if bld.env.WITH_EXAMPLES:
 		example_sources = '''
 			examples/pa_devs.c
 			'''.split()
@@ -280,13 +275,13 @@ def build(bld):
 
 	bld.install_files ('${PREFIX}/include', 'include/portaudio.h')
 
-	if bld.env['WITH_WMME']:
+	if bld.env.WITH_WMME:
 		bld.install_files ('${PREFIX}/include', 'include/pa_win_wmme.h')
 
-	if bld.env['WITH_DIRECTX']:
+	if bld.env.WITH_DIRECTX:
 		bld.install_files ('${PREFIX}/include', 'include/pa_win_ds.h')
 
-	if bld.env['WITH_WDMKS']:
+	if bld.env.WITH_WDMKS:
 		bld.install_files ('${PREFIX}/include', 'include/pa_win_wdmks.h')
 
 	# build pkgconfig file
@@ -297,6 +292,3 @@ def build(bld):
 			install_path = '${PREFIX}/lib/pkgconfig',
 			dict = {'PREFIX' : bld.env.PREFIX }
 		 )
-
-
-
