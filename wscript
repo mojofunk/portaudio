@@ -169,26 +169,26 @@ def build(bld):
         uselib_extra += ['KSUSER']
         uselib_extra += ['UUID']
 
-    obj = bld(features='c cshlib',
-              includes=['include', 'src/common', 'src/os/win'],
-              source=common_sources + windows_sources,
-              uselib=['OLE', 'WINMM'] + uselib_extra,
-              defines=use_defines,
-              target='portaudio',
-              name='portaudio',
-              vnum='2.0.0'
-              )
+    bld.shlib(
+        includes=['include', 'src/common', 'src/os/win'],
+        source=common_sources + windows_sources,
+        uselib=['OLE', 'WINMM'] + uselib_extra,
+        defines=use_defines,
+        target='portaudio',
+        name='portaudio',
+        vnum='2.0.0'
+    )
 
     if bld.env.ENABLE_STATIC:
-        obj = bld(features='c cstlib',
-                  includes=['include', 'src/common', 'src/os/win'],
-                  source=common_sources + windows_sources,
-                  uselib=['OLE', 'WINMM'] + uselib_extra,
-                  defines=use_defines,
-                  target='portaudio',
-                  name='portaudio-static',
-                  vnum='2.0.0'
-                  )
+        bld.stlib(
+            includes=['include', 'src/common', 'src/os/win'],
+            source=common_sources + windows_sources,
+            uselib=['OLE', 'WINMM'] + uselib_extra,
+            defines=use_defines,
+            target='portaudio',
+            name='portaudio-static',
+            vnum='2.0.0'
+        )
 
     if bld.env.WITH_TESTS:
         test_sources = '''
@@ -249,14 +249,13 @@ def build(bld):
 
         for test_src in test_sources:
 
-            bld(features='c cprogram',
+            bld.program(
                 includes=['include', 'src/common', 'src/os/win'],
                 use=['portaudio'],
                 source=test_src,
                 uselib=['OLE', 'WINMM'],
                 target=os.path.splitext(test_src)[0]
-
-                )
+            )
 
     if bld.env.WITH_EXAMPLES:
         example_sources = '''
@@ -265,14 +264,13 @@ def build(bld):
 
         for example_src in example_sources:
 
-            bld(features='c cprogram',
+            bld.program(
                 includes=['include', 'src/common', 'src/os/win'],
                 use=['portaudio'],
                 source=example_src,
                 uselib=['OLE', 'WINMM'],
                 target=os.path.splitext(example_src)[0]
-
-                )
+            )
 
     # install headers
 
@@ -289,9 +287,10 @@ def build(bld):
 
     # build pkgconfig file
 
-    pc = bld(features='subst',
-             source='portaudio-2.0.pc.in',
-             target='portaudio-2.0.pc',
-             install_path='${PREFIX}/lib/pkgconfig',
-             dict={'PREFIX': bld.env.PREFIX}
-             )
+    bld(
+        features='subst',
+        source='portaudio-2.0.pc.in',
+        target='portaudio-2.0.pc',
+        install_path='${PREFIX}/lib/pkgconfig',
+        dict={'PREFIX': bld.env.PREFIX}
+    )
