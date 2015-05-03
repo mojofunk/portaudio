@@ -10,6 +10,7 @@ VERSION = '2.0'
 
 def options(opt):
     opt.load('compiler_c')
+    opt.load('compiler_cxx')
 
     opt.add_option('--platform', type='string', default='auto',
                    help='Specify the target for cross-compiling [auto,mingw]')
@@ -41,6 +42,9 @@ def options(opt):
 
     opt.add_option('--with-wasapi', action='store_true', default=False, dest='with_wasapi',
                    help='Build with WASAPI API support')
+
+    opt.add_option('--with-asio', action='store_true', default=False, dest='with_asio',
+                   help='Build with ASIO API support')
 
     # Unicode option?
     # asio sdk path option
@@ -77,6 +81,8 @@ def configure(conf):
 
     conf.env.WITH_WASAPI = Options.options.with_wasapi
 
+    conf.env.WITH_ASIO = Options.options.with_asio
+
     if conf.env.WITH_WDMKS:
         conf.check(compiler='c',
                    lib='setupapi',
@@ -94,11 +100,15 @@ def configure(conf):
                    mandatory=True,
                    uselib_store='UUID')
 
+    if conf.env.WITH_ASIO:
+        conf.load('compiler_cxx')
+
 
 def build(bld):
 
     use_defines = []
     uselib_extra = []
+    asio_includes = []
 
     common_includes = '''
 	src/common/pa_allocation.h
@@ -172,6 +182,17 @@ def build(bld):
 	src/hostapi/wasapi/pa_win_wasapi.c
 	'''
 
+    asio_sources = '''
+    src/hostapi/asio/pa_asio.cpp
+    src/hostapi/asio/iasiothiscallresolver.cpp
+	'''
+
+    asio_sdk_sources = '''
+    ../ASIOSDK2/common/asio.cpp
+    ../ASIOSDK2/host/pc/asiolist.cpp
+    ../ASIOSDK2/host/asiodrivers.cpp
+	'''
+
     if bld.env.WITH_WMME:
         windows_sources += wmme_sources
         use_defines += ['PA_USE_WMME=1']
@@ -200,8 +221,17 @@ def build(bld):
         use_defines += ['PA_USE_WASAPI=1']
         uselib_extra += ['UUID']
 
+    if bld.env.WITH_ASIO:
+        windows_sources += asio_sources
+        windows_sources += asio_sdk_sources
+        use_defines += ['PA_USE_ASIO=1']
+        asio_includes = [
+            '../ASIOSDK2/common',
+            '../ASIOSDK2/host',
+            '../ASIOSDK2/host/pc']
+
     bld.shlib(
-        includes=['include', 'src/common', 'src/os/win'],
+        includes=['include', 'src/common', 'src/os/win'] + asio_includes,
         source=common_sources + windows_sources,
         uselib=['OLE', 'WINMM'] + uselib_extra,
         defines=use_defines,
@@ -212,7 +242,7 @@ def build(bld):
 
     if bld.env.ENABLE_STATIC:
         bld.stlib(
-            includes=['include', 'src/common', 'src/os/win'],
+            includes=['include', 'src/common', 'src/os/win'] + asio_includes,
             source=common_sources + windows_sources,
             uselib=['OLE', 'WINMM'] + uselib_extra,
             defines=use_defines,
@@ -318,6 +348,9 @@ def build(bld):
 
     if bld.env.WITH_WASAPI:
         bld.install_files('${PREFIX}/include', 'include/pa_win_wasapi.h')
+
+    if bld.env.WITH_ASIO:
+        bld.install_files('${PREFIX}/include', 'include/pa_asio.h')
 
     # build pkgconfig file
 
