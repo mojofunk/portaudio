@@ -29,6 +29,10 @@ def options(opt):
     opt.add_option('--with-directx', action='store_true', default=False, dest='with_directx',
                    help='Build DirectX support')
 
+    opt.add_option('--with-directsound-full-duplex-create', action='store_true',
+                   default=False, dest='with_directsound_full_duplex',
+                   help='Use DirectSound full duplex create')
+
     opt.add_option('--with-wdmks', action='store_true', default=False, dest='with_wdmks',
                    help='Build with WDM/KS API support')
 
@@ -40,7 +44,6 @@ def options(opt):
 
     # Unicode option?
     # asio sdk path option
-    # Use directsound full duplex create
 
 
 def configure(conf):
@@ -65,6 +68,8 @@ def configure(conf):
     conf.env.WITH_WMME = Options.options.with_wmme
 
     conf.env.WITH_DIRECTX = Options.options.with_directx
+
+    conf.env.WITH_DSOUND_FULL_DUPLEX = Options.options.with_directsound_full_duplex
 
     conf.env.WITH_WDMKS = Options.options.with_wdmks
 
@@ -168,6 +173,8 @@ def build(bld):
     if bld.env.WITH_DIRECTX:
         windows_sources += dsound_sources
         use_defines += ['PA_USE_DS=1']
+        if bld.env.WITH_DSOUND_FULL_DUPLEX:
+            use_defines += ['PAWIN_USE_DIRECTSOUNDFULLDUPLEXCREATE']
 
     if bld.env.WITH_WDMKS:
         windows_sources += wdmks_sources
