@@ -73,6 +73,8 @@ def configure(conf):
 
     conf.env.WITH_WDMKS = Options.options.with_wdmks
 
+    conf.env.WITH_WDMKS_DEVICE_INFO = Options.options.with_wdmks_device_info
+
     conf.env.WITH_WASAPI = Options.options.with_wasapi
 
     if conf.env.WITH_WDMKS:
@@ -86,11 +88,12 @@ def configure(conf):
                    mandatory=True,
                    uselib_store='KSUSER')
 
-    if conf.env.WITH_WDMKS or conf.env.WITH_WASAPI:
+    if conf.env.WITH_WDMKS or conf.env.WITH_WDMKS_DEVICE_INFO or conf.env.WITH_WASAPI:
         conf.check(compiler='c',
                    lib='uuid',
                    mandatory=True,
                    uselib_store='UUID')
+
 
 def build(bld):
 
@@ -149,17 +152,20 @@ def build(bld):
 	'''
 
     dsound_sources = '''
-	src/hostapi/dsound/pa_win_ds.c
-	src/hostapi/dsound/pa_win_ds_dynlink.c
+    src/hostapi/dsound/pa_win_ds.c
+    src/hostapi/dsound/pa_win_ds_dynlink.c
 	'''
 
     wdmks_includes = '''
-	include/pa_win_wdmks.h
+    include/pa_win_wdmks.h
 	'''
 
     wdmks_sources = '''
-	src/hostapi/wdmks/pa_win_wdmks.c
-	src/os/win/pa_win_wdmks_utils.c
+    src/hostapi/wdmks/pa_win_wdmks.c
+	'''
+
+    wdmks_device_info_sources = '''
+    src/os/win/pa_win_wdmks_utils.c
 	'''
 
     wasapi_sources = '''
@@ -175,6 +181,12 @@ def build(bld):
         use_defines += ['PA_USE_DS=1']
         if bld.env.WITH_DSOUND_FULL_DUPLEX:
             use_defines += ['PAWIN_USE_DIRECTSOUNDFULLDUPLEXCREATE']
+
+    # relevant for WMME and DSOUND
+    if bld.env.WITH_WDMKS_DEVICE_INFO:
+        use_defines += ['PAWIN_USE_WDMKS_DEVICE_INFO']
+        windows_sources += wdmks_device_info_sources
+        uselib_extra += ['UUID']
 
     if bld.env.WITH_WDMKS:
         windows_sources += wdmks_sources
