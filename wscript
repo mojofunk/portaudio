@@ -1,0 +1,219 @@
+#!/usr/bin/env python
+
+import os
+
+from waflib import Options
+
+APPNAME = 'portaudio'
+VERSION = '2.0'
+
+def options(opt):
+	opt.load('compiler_c')
+	
+	opt.add_option('--platform', type='string', default='auto',
+		help='Specify the target for cross-compiling [auto,mingw]')
+
+	opt.add_option('--with-tests', action='store_true', default=False, dest='with_tests',
+		help='Build Portaudio tests')
+
+	opt.add_option('--with-examples', action='store_true', default=False, dest='with_examples',
+		help='Build Portaudio example programs')
+
+	opt.add_option('--with-directx', action='store_true', default=False, dest='with_directx',
+		help='Build DirectX support')
+
+	opt.add_option('--with-wdmks', action='store_true', default=False, dest='with_wdmks',
+		help='Build with WDM/KS API support')
+
+	opt.add_option('--with-wdmks-device-info', action='store_true', default=False, dest='with_wdmks_device_info',
+		help='Use WDM/KS API for defice info')
+	
+	# Unicode option?
+	# asio sdk path option
+	# mme option
+	# WASAPI option
+	# Use directsound full duplex create
+
+def configure(conf):
+	conf.load('compiler_c')
+
+	conf.check(compiler='c',
+			lib='ole32',
+			mandatory=True,
+			uselib_store='OLE')
+
+	conf.check(compiler='c',
+			lib='winmm',
+			mandatory=True,
+			uselib_store='WINMM')
+
+	if Options.options.with_tests:
+		conf.env['WITH_TESTS'] = True
+
+	if Options.options.with_examples:
+		conf.env['WITH_EXAMPLES'] = True
+
+	if Options.options.with_directx:
+		conf.env['WITH_DIRECTX'] = True
+
+	if Options.options.with_wdmks:
+		conf.env['WITH_WDMKS'] = True
+
+		conf.check(compiler='c',
+				lib='setupapi',
+				mandatory=True,
+				uselib_store='SETUPAPI')
+
+		conf.check(compiler='c',
+				lib='ksuser',
+				mandatory=True,
+				uselib_store='KSUSER')
+
+		conf.check(compiler='c',
+				lib='uuid',
+				mandatory=True,
+				uselib_store='UUID')
+
+def build(bld):
+
+	use_defines = [ ]
+	uselib_extra = [ ]
+
+	common_includes = '''
+	src/common/pa_allocation.h
+	src/common/pa_converters.h
+	src/common/pa_cpuload.h
+	src/common/pa_debugprint.h
+	src/common/pa_dither.h
+	src/common/pa_endianness.h
+	src/common/pa_hostapi.h
+	src/common/pa_memorybarrier.h
+	src/common/pa_process.h
+	src/common/pa_ringbuffer.h
+	src/common/pa_stream.h
+	src/common/pa_trace.h
+	src/common/pa_types.h
+	src/common/pa_util.h
+	'''
+
+	common_sources = '''
+	src/common/pa_allocation.c
+	src/common/pa_converters.c
+	src/common/pa_cpuload.c
+	src/common/pa_debugprint.c
+	src/common/pa_dither.c
+	src/common/pa_front.c
+	src/common/pa_process.c
+	src/common/pa_ringbuffer.c
+	src/common/pa_stream.c
+	src/common/pa_trace.c
+	'''
+
+	windows_sources = '''
+	src/os/win/pa_win_hostapis.c
+	src/os/win/pa_win_util.c
+	src/os/win/pa_win_waveformat.c
+	src/os/win/pa_win_wdmks_utils.c
+	src/os/win/pa_win_coinitialize.c
+	'''
+
+	#src/os/win/pa_win_wdmks_utils.c
+	#src/os/win/pa_x86_plain_converters.c
+
+	dsound_includes = '''
+	include/pa_win_ds.h
+	src/hostapi/dsound/pa_win_ds_dynlink.h
+	'''
+
+	dsound_sources = '''
+	src/hostapi/dsound/pa_win_ds.c
+	src/hostapi/dsound/pa_win_ds_dynlink.c
+	'''
+
+	wdmks_includes = '''
+	include/pa_win_wdmks.h
+	'''
+
+	wdmks_sources = '''
+	src/hostapi/wdmks/pa_win_wdmks.c
+	'''
+
+	# build pkgconfig file
+	# set defines based on options
+	
+	if bld.env['WITH_DIRECTX']:
+		windows_sources += dsound_sources
+		use_defines += ['PA_USE_DS=1']
+
+	if bld.env['WITH_WDMKS']:
+		windows_sources += wdmks_sources
+		use_defines += ['PA_USE_WDMKS=1']
+		uselib_extra += ['SETUPAPI']
+		uselib_extra += ['KSUSER']
+		uselib_extra += ['UUID']
+
+	obj = bld(features = 'c cshlib',
+	          includes = ['include', 'src/common', 'src/os/win'],
+		  source = common_sources + windows_sources,
+		  uselib = [ 'OLE', 'WINMM' ] + uselib_extra,
+		  defines = use_defines,
+		  target = 'portaudio',
+		  name = 'portaudio',
+		  vnum = '2.0.0'
+		  )
+
+
+	if bld.env['WITH_TESTS']:
+		test_sources = '''
+			test/patest1.c
+			test/patest_longsine.c
+			'''.split()
+		
+		for test_src in test_sources:
+
+			bld(features = 'c cprogram',
+				includes = ['include', 'src/common', 'src/os/win'],
+				use = ['portaudio'],
+				source = test_src,
+				uselib = [ 'OLE', 'WINMM' ],
+				target = os.path.splitext(test_src)[0]
+				 
+			)
+
+	if bld.env['WITH_EXAMPLES']:
+		example_sources = '''
+			examples/pa_devs.c
+			'''.split()
+		
+		for example_src in example_sources:
+
+			bld(features = 'c cprogram',
+				includes = ['include', 'src/common', 'src/os/win'],
+				use = ['portaudio'],
+				source = example_src,
+				uselib = [ 'OLE', 'WINMM' ],
+				target = os.path.splitext(example_src)[0]
+				 
+			)
+
+	# install headers
+
+	bld.install_files ('${PREFIX}/include', 'include/portaudio.h')
+
+	if bld.env['WITH_DIRECTX']:
+		bld.install_files ('${PREFIX}/include', 'include/pa_win_ds.h')
+
+	if bld.env['WITH_WDMKS']:
+		bld.install_files ('${PREFIX}/include', 'include/pa_win_wdmks.h')
+
+	# build pkgconfig file
+
+	pc = bld (features = 'subst',
+			source = 'portaudio-2.0.pc.in',
+			target = 'portaudio-2.0.pc',
+			install_path = '${PREFIX}/lib/pkgconfig',
+			dict = {'PREFIX' : bld.env.PREFIX }
+		 )
+
+
+
