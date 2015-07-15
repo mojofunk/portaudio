@@ -7,6 +7,7 @@ from waflib import Options
 APPNAME = 'portaudio'
 VERSION = '2.0'
 
+out = 'waf-build'
 
 def options(opt):
     opt.load('compiler_c')
