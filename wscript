@@ -35,10 +35,11 @@ def options(opt):
     opt.add_option('--with-wdmks-device-info', action='store_true', default=False, dest='with_wdmks_device_info',
                    help='Use WDM/KS API for defice info')
 
+    opt.add_option('--with-wasapi', action='store_true', default=False, dest='with_wasapi',
+                   help='Build with WASAPI API support')
+
     # Unicode option?
     # asio sdk path option
-    # mme option
-    # WASAPI option
     # Use directsound full duplex create
 
 
@@ -67,6 +68,8 @@ def configure(conf):
 
     conf.env.WITH_WDMKS = Options.options.with_wdmks
 
+    conf.env.WITH_WASAPI = Options.options.with_wasapi
+
     if conf.env.WITH_WDMKS:
         conf.check(compiler='c',
                    lib='setupapi',
@@ -78,11 +81,11 @@ def configure(conf):
                    mandatory=True,
                    uselib_store='KSUSER')
 
+    if conf.env.WITH_WDMKS or conf.env.WITH_WASAPI:
         conf.check(compiler='c',
                    lib='uuid',
                    mandatory=True,
                    uselib_store='UUID')
-
 
 def build(bld):
 
@@ -154,6 +157,10 @@ def build(bld):
 	src/os/win/pa_win_wdmks_utils.c
 	'''
 
+    wasapi_sources = '''
+	src/hostapi/wasapi/pa_win_wasapi.c
+	'''
+
     if bld.env.WITH_WMME:
         windows_sources += wmme_sources
         use_defines += ['PA_USE_WMME=1']
@@ -167,6 +174,11 @@ def build(bld):
         use_defines += ['PA_USE_WDMKS=1']
         uselib_extra += ['SETUPAPI']
         uselib_extra += ['KSUSER']
+        uselib_extra += ['UUID']
+
+    if bld.env.WITH_WASAPI:
+        windows_sources += wasapi_sources
+        use_defines += ['PA_USE_WASAPI=1']
         uselib_extra += ['UUID']
 
     bld.shlib(
@@ -284,6 +296,9 @@ def build(bld):
 
     if bld.env.WITH_WDMKS:
         bld.install_files('${PREFIX}/include', 'include/pa_win_wdmks.h')
+
+    if bld.env.WITH_WASAPI:
+        bld.install_files('${PREFIX}/include', 'include/pa_win_wasapi.h')
 
     # build pkgconfig file
 
