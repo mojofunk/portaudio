@@ -60,6 +60,18 @@
     #include <devicetopology.h>	// Used to get IKsJackDescription interface
 	#undef INITGUID
 #endif
+#if defined(__MINGW64_VERSION_MAJOR) && (__MINGW64_VERSION_MAJOR >= 4)
+	#include <avrt.h>
+	#define COBJMACROS
+	#include <audioclient.h>
+	#include <endpointvolume.h>
+	#define INITGUID // Avoid additional linkage of static libs, excessive code will be optimized out by the compiler
+	#include <mmdeviceapi.h>
+	#include <functiondiscoverykeys_devpkey.h>
+	#include <functiondiscoverykeys.h>
+    #include <devicetopology.h>	// Used to get IKsJackDescription interface
+	#undef INITGUID
+#endif
 #ifndef __MWERKS__
 #include <malloc.h>
 #include <memory.h>
