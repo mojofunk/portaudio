@@ -19,6 +19,9 @@ def options(opt):
     opt.add_option('--enable-static', action='store_true', default=False, dest='enable_static',
                    help='Build a static version of Portaudio library')
 
+    opt.add_option('--enable-debug-output', action='store_true', default=True, dest='enable_debug_output',
+                   help='Enable debug output for the Portaudio library')
+
     opt.add_option('--with-tests', action='store_true', default=False, dest='with_tests',
                    help='Build Portaudio tests')
 
@@ -65,6 +68,8 @@ def configure(conf):
                uselib_store='WINMM')
 
     conf.env.ENABLE_STATIC = Options.options.enable_static
+
+    conf.env.ENABLE_DEBUG_OUTPUT = Options.options.enable_debug_output
 
     conf.env.WITH_TESTS = Options.options.with_tests
 
@@ -193,6 +198,9 @@ def build(bld):
     ../ASIOSDK2/host/pc/asiolist.cpp
     ../ASIOSDK2/host/asiodrivers.cpp
 	'''
+
+    if bld.env.ENABLE_DEBUG_OUTPUT:
+        use_defines += ['PA_ENABLE_DEBUG_OUTPUT']
 
     if bld.env.WITH_WMME:
         windows_sources += wmme_sources
