@@ -2,7 +2,7 @@
 
 import os
 
-from waflib import Options
+from waflib import Options, Logs
 
 APPNAME = 'portaudio'
 VERSION = '2.0'
@@ -16,10 +16,13 @@ def options(opt):
     opt.add_option('--platform', type='string', default='auto',
                    help='Specify the target for cross-compiling [auto,mingw]')
 
+    opt.add_option('--disable-shared', action='store_true', default=False, dest='disable_shared',
+                   help='Do not build a shared version of the Portaudio library')
+
     opt.add_option('--enable-static', action='store_true', default=False, dest='enable_static',
                    help='Build a static version of Portaudio library')
 
-    opt.add_option('--enable-debug-output', action='store_true', default=True, dest='enable_debug_output',
+    opt.add_option('--enable-debug-output', action='store_true', default=False, dest='enable_debug_output',
                    help='Enable debug output for the Portaudio library')
 
     opt.add_option('--with-tests', action='store_true', default=False, dest='with_tests',
@@ -53,6 +56,23 @@ def options(opt):
     # Unicode option?
     # asio sdk path option
 
+def define_compiler_flags(conf):
+    if not conf.env.CFLAGS:
+        # TODO check compiler and use appropriate flags
+        conf.env.CFLAGS = '-g'
+
+def print_configuration(conf):
+    Logs.info("Enable shared             : %s" % conf.env.ENABLE_SHARED)
+    Logs.info("Enable static             : %s" % conf.env.ENABLE_STATIC)
+    Logs.info("With debug output         : %s" % conf.env.ENABLE_DEBUG_OUTPUT)
+    Logs.info("With tests                : %s" % conf.env.ENABLE_SHARED)
+    Logs.info("With wmme                 : %s" % conf.env.ENABLE_SHARED)
+    Logs.info("With directx              : %s" % conf.env.ENABLE_SHARED)
+    Logs.info("With dsound full duplex   : %s" % conf.env.ENABLE_SHARED)
+    Logs.info("With wdmks                : %s" % conf.env.ENABLE_SHARED)
+    Logs.info("With wdmks device info    : %s" % conf.env.ENABLE_SHARED)
+    Logs.info("With WASAPI               : %s" % conf.env.ENABLE_SHARED)
+    Logs.info("With ASIO                 : %s" % conf.env.ENABLE_SHARED)
 
 def configure(conf):
     conf.load('compiler_c')
@@ -66,6 +86,8 @@ def configure(conf):
                lib='winmm',
                mandatory=True,
                uselib_store='WINMM')
+
+    conf.env.ENABLE_SHARED = not Options.options.disable_shared
 
     conf.env.ENABLE_STATIC = Options.options.enable_static
 
@@ -89,6 +111,12 @@ def configure(conf):
 
     conf.env.WITH_ASIO = Options.options.with_asio
 
+    if not conf.env.ENABLE_SHARED and not conf.env.ENABLE_STATIC:
+        conf.env.ENABLE_SHARED = True
+
+    if conf.env.WITH_TESTS or conf.env.WITH_EXAMPLES:
+        conf.env.ENABLE_SHARED = True
+
     if conf.env.WITH_WDMKS:
         conf.check(compiler='c',
                    lib='setupapi',
@@ -109,9 +137,14 @@ def configure(conf):
     if conf.env.WITH_ASIO:
         conf.load('compiler_cxx')
 
+    define_compiler_flags(conf)
+
+    print_configuration(conf)
 
 def build(bld):
 
+    # detect and possibly use
+    #use_defines = ['PA_USE_C99_LRINTF']
     use_defines = []
     uselib_extra = []
     asio_includes = []
@@ -239,15 +272,17 @@ def build(bld):
             '../ASIOSDK2/host',
             '../ASIOSDK2/host/pc']
 
-    bld.shlib(
-        includes=['include', 'src/common', 'src/os/win'] + asio_includes,
-        source=common_sources + windows_sources,
-        uselib=['OLE', 'WINMM'] + uselib_extra,
-        defines=use_defines,
-        target='portaudio',
-        name='portaudio',
-        vnum='2.0.0'
-    )
+    if bld.env.ENABLE_SHARED:
+        bld.shlib(
+            includes=['include', 'src/common', 'src/os/win'] + asio_includes,
+            source=common_sources + windows_sources,
+            uselib=['OLE', 'WINMM'] + uselib_extra,
+            defines=use_defines,
+            install_path='${BINDIR}',
+            target='portaudio',
+            name='PORTAUDIO_SHARED',
+            vnum='2.0.0'
+        )
 
     if bld.env.ENABLE_STATIC:
         bld.stlib(
@@ -255,8 +290,9 @@ def build(bld):
             source=common_sources + windows_sources,
             uselib=['OLE', 'WINMM'] + uselib_extra,
             defines=use_defines,
+            install_path='${PREFIX}/lib',
             target='portaudio',
-            name='portaudio-static',
+            name='PORTAUDIO_STATIC',
             vnum='2.0.0'
         )
 
@@ -321,7 +357,7 @@ def build(bld):
 
             bld.program(
                 includes=['include', 'src/common', 'src/os/win'],
-                use=['portaudio'],
+                use=['PORTAUDIO_SHARED'],
                 source=test_src,
                 uselib=['OLE', 'WINMM'],
                 target=os.path.splitext(test_src)[0]
@@ -336,7 +372,7 @@ def build(bld):
 
             bld.program(
                 includes=['include', 'src/common', 'src/os/win'],
-                use=['portaudio'],
+                use=['PORTAUDIO_SHARED'],
                 source=example_src,
                 uselib=['OLE', 'WINMM'],
                 target=os.path.splitext(example_src)[0]
