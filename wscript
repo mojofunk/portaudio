@@ -65,27 +65,21 @@ def print_configuration(conf):
     Logs.info("Enable shared             : %s" % conf.env.ENABLE_SHARED)
     Logs.info("Enable static             : %s" % conf.env.ENABLE_STATIC)
     Logs.info("With debug output         : %s" % conf.env.ENABLE_DEBUG_OUTPUT)
-    Logs.info("With tests                : %s" % conf.env.ENABLE_SHARED)
-    Logs.info("With wmme                 : %s" % conf.env.ENABLE_SHARED)
-    Logs.info("With directx              : %s" % conf.env.ENABLE_SHARED)
-    Logs.info("With dsound full duplex   : %s" % conf.env.ENABLE_SHARED)
-    Logs.info("With wdmks                : %s" % conf.env.ENABLE_SHARED)
-    Logs.info("With wdmks device info    : %s" % conf.env.ENABLE_SHARED)
-    Logs.info("With WASAPI               : %s" % conf.env.ENABLE_SHARED)
-    Logs.info("With ASIO                 : %s" % conf.env.ENABLE_SHARED)
+    Logs.info("With tests                : %s" % conf.env.WITH_TESTS)
+    Logs.info("With examples             : %s" % conf.env.WITH_EXAMPLES)
+    Logs.info("With wmme                 : %s" % conf.env.WITH_WMME)
+    Logs.info("With directx              : %s" % conf.env.WITH_DIRECTX)
+    Logs.info("With dsound full duplex   : %s" % conf.env.WITH_DSOUND_FULL_DUPLEX)
+    Logs.info("With wdmks                : %s" % conf.env.WITH_WDMKS)
+    Logs.info("With wdmks device info    : %s" % conf.env.WITH_WDMKS_DEVICE_INFO)
+    Logs.info("With WASAPI               : %s" % conf.env.WITH_WASAPI)
+    Logs.info("With ASIO                 : %s" % conf.env.WITH_ASIO)
 
 def configure(conf):
     conf.load('compiler_c')
 
-    conf.check(compiler='c',
-               lib='ole32',
-               mandatory=True,
-               uselib_store='OLE')
-
-    conf.check(compiler='c',
-               lib='winmm',
-               mandatory=True,
-               uselib_store='WINMM')
+    conf.check(lib='ole32', uselib_store='OLE')
+    conf.check(lib='winmm', uselib_store='WINMM')
 
     conf.env.ENABLE_SHARED = not Options.options.disable_shared
 
@@ -118,24 +112,16 @@ def configure(conf):
         conf.env.ENABLE_SHARED = True
 
     if conf.env.WITH_WDMKS:
-        conf.check(compiler='c',
-                   lib='setupapi',
-                   mandatory=True,
-                   uselib_store='SETUPAPI')
-
-        conf.check(compiler='c',
-                   lib='ksuser',
-                   mandatory=True,
-                   uselib_store='KSUSER')
+        conf.check(lib='setupapi', uselib_store='SETUPAPI')
+        conf.check(lib='ksuser', uselib_store='KSUSER')
 
     if conf.env.WITH_WDMKS or conf.env.WITH_WDMKS_DEVICE_INFO or conf.env.WITH_WASAPI:
-        conf.check(compiler='c',
-                   lib='uuid',
-                   mandatory=True,
-                   uselib_store='UUID')
+        conf.check(lib='uuid', uselib_store='UUID')
 
     if conf.env.WITH_ASIO:
         conf.load('compiler_cxx')
+        conf.check(lib='advapi32', uselib_store='ADVAPI32')
+        conf.check(lib='user32', uselib_store='USER32')
 
     define_compiler_flags(conf)
 
@@ -146,7 +132,7 @@ def build(bld):
     # detect and possibly use
     #use_defines = ['PA_USE_C99_LRINTF']
     use_defines = []
-    uselib_extra = []
+    uselibs = ['OLE', 'WINMM']
     asio_includes = []
 
     common_includes = '''
@@ -249,24 +235,25 @@ def build(bld):
     if bld.env.WITH_WDMKS_DEVICE_INFO:
         use_defines += ['PAWIN_USE_WDMKS_DEVICE_INFO']
         windows_sources += wdmks_device_info_sources
-        uselib_extra += ['UUID']
+        uselibs += ['UUID']
 
     if bld.env.WITH_WDMKS:
         windows_sources += wdmks_sources
         use_defines += ['PA_USE_WDMKS=1']
-        uselib_extra += ['SETUPAPI']
-        uselib_extra += ['KSUSER']
-        uselib_extra += ['UUID']
+        uselibs += ['SETUPAPI']
+        uselibs += ['KSUSER']
+        uselibs += ['UUID']
 
     if bld.env.WITH_WASAPI:
         windows_sources += wasapi_sources
         use_defines += ['PA_USE_WASAPI=1']
-        uselib_extra += ['UUID']
+        uselibs += ['UUID']
 
     if bld.env.WITH_ASIO:
         windows_sources += asio_sources
         windows_sources += asio_sdk_sources
         use_defines += ['PA_USE_ASIO=1']
+        uselibs += ['ADVAPI32', 'USER32']
         asio_includes = [
             '../ASIOSDK2/common',
             '../ASIOSDK2/host',
@@ -276,7 +263,7 @@ def build(bld):
         bld.shlib(
             includes=['include', 'src/common', 'src/os/win'] + asio_includes,
             source=common_sources + windows_sources,
-            uselib=['OLE', 'WINMM'] + uselib_extra,
+            uselib=uselibs,
             defines=use_defines,
             install_path='${BINDIR}',
             target='portaudio',
@@ -288,7 +275,7 @@ def build(bld):
         bld.stlib(
             includes=['include', 'src/common', 'src/os/win'] + asio_includes,
             source=common_sources + windows_sources,
-            uselib=['OLE', 'WINMM'] + uselib_extra,
+            uselib=uselibs,
             defines=use_defines,
             install_path='${PREFIX}/lib',
             target='portaudio',
@@ -359,7 +346,7 @@ def build(bld):
                 includes=['include', 'src/common', 'src/os/win'],
                 use=['PORTAUDIO_SHARED'],
                 source=test_src,
-                uselib=['OLE', 'WINMM'],
+                uselib=uselibs,
                 target=os.path.splitext(test_src)[0]
             )
 
@@ -374,7 +361,7 @@ def build(bld):
                 includes=['include', 'src/common', 'src/os/win'],
                 use=['PORTAUDIO_SHARED'],
                 source=example_src,
-                uselib=['OLE', 'WINMM'],
+                uselib=uselibs,
                 target=os.path.splitext(example_src)[0]
             )
 
