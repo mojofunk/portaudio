@@ -1,6 +1,5 @@
 *.swp
 *~
 waf-build/
-*.waf*
 .lock*
 *.pyc
