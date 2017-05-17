@@ -387,12 +387,17 @@ def build(bld):
     if bld.env.WITH_ASIO:
         bld.install_files('${PREFIX}/include', 'include/pa_asio.h')
 
-    # build pkgconfig file
+    bld.env.LIBS = ''
 
+    for lib in uselibs:
+        key = 'LIB_' + lib
+        bld.env.LIBS += '-l' + bld.env[key][0] + ' '
+
+    # build pkgconfig file
     bld(
         features='subst',
         source='portaudio-2.0.pc.in',
         target='portaudio-2.0.pc',
         install_path='${PREFIX}/lib/pkgconfig',
-        dict={'PREFIX': bld.env.PREFIX}
+        dict={'PREFIX': bld.env.PREFIX, 'LIBS': bld.env.LIBS}
     )
