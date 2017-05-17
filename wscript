@@ -108,6 +108,9 @@ def configure(conf):
     if conf.env.WITH_TESTS or conf.env.WITH_EXAMPLES:
         conf.env.ENABLE_SHARED = True
 
+    if conf.env.WITH_DIRECTX:
+        conf.check(lib='user32', uselib_store='USER32')
+
     if conf.env.WITH_WDMKS:
         conf.check(lib='setupapi', uselib_store='SETUPAPI')
         conf.check(lib='ksuser', uselib_store='KSUSER')
@@ -225,6 +228,7 @@ def build(bld):
     if bld.env.WITH_DIRECTX:
         windows_sources += dsound_sources
         use_defines += ['PA_USE_DS=1']
+        uselibs += ['USER32']
         if bld.env.WITH_DSOUND_FULL_DUPLEX:
             use_defines += ['PAWIN_USE_DIRECTSOUNDFULLDUPLEXCREATE']
 
