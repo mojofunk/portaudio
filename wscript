@@ -114,6 +114,7 @@ def configure(conf):
     if conf.env.WITH_WDMKS:
         conf.check(lib='setupapi', uselib_store='SETUPAPI')
         conf.check(lib='ksuser', uselib_store='KSUSER')
+        conf.check(lib='advapi32', uselib_store='ADVAPI32')
 
     if conf.env.WITH_WDMKS or conf.env.WITH_WDMKS_DEVICE_INFO or conf.env.WITH_WASAPI:
         conf.check(lib='uuid', uselib_store='UUID')
@@ -241,6 +242,7 @@ def build(bld):
     if bld.env.WITH_WDMKS:
         windows_sources += wdmks_sources
         use_defines += ['PA_USE_WDMKS=1']
+        uselibs += ['ADVAPI32']
         uselibs += ['SETUPAPI']
         uselibs += ['KSUSER']
         uselibs += ['UUID']
