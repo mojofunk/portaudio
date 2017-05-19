@@ -9,6 +9,7 @@ VERSION = '2.0'
 
 out = 'waf-build'
 
+
 def options(opt):
     opt.load('compiler_c')
     opt.load('compiler_cxx')
@@ -51,10 +52,12 @@ def options(opt):
     # Unicode option?
     # asio sdk path option
 
+
 def define_compiler_flags(conf):
     if not conf.env.CFLAGS:
         # TODO check compiler and use appropriate flags
         conf.env.CFLAGS = '-g'
+
 
 def print_configuration(conf):
     Logs.info('Host System               : %s' % conf.env.HOST_SYSTEM)
@@ -74,6 +77,7 @@ def print_configuration(conf):
     Logs.info("With wdmks device info    : %s" % conf.env.WITH_WDMKS_DEVICE_INFO)
     Logs.info("With WASAPI               : %s" % conf.env.WITH_WASAPI)
     Logs.info("With ASIO                 : %s" % conf.env.WITH_ASIO)
+
 
 def configure(conf):
     conf.load('gnu_dirs')
@@ -128,6 +132,7 @@ def configure(conf):
 
     print_configuration(conf)
 
+
 def build(bld):
 
     # detect and possibly use
@@ -137,87 +142,87 @@ def build(bld):
     asio_includes = []
 
     common_includes = '''
-	src/common/pa_allocation.h
-	src/common/pa_converters.h
-	src/common/pa_cpuload.h
-	src/common/pa_debugprint.h
-	src/common/pa_dither.h
-	src/common/pa_endianness.h
-	src/common/pa_hostapi.h
-	src/common/pa_memorybarrier.h
-	src/common/pa_process.h
-	src/common/pa_ringbuffer.h
-	src/common/pa_stream.h
-	src/common/pa_trace.h
-	src/common/pa_types.h
-	src/common/pa_util.h
-	'''
+    src/common/pa_allocation.h
+    src/common/pa_converters.h
+    src/common/pa_cpuload.h
+    src/common/pa_debugprint.h
+    src/common/pa_dither.h
+    src/common/pa_endianness.h
+    src/common/pa_hostapi.h
+    src/common/pa_memorybarrier.h
+    src/common/pa_process.h
+    src/common/pa_ringbuffer.h
+    src/common/pa_stream.h
+    src/common/pa_trace.h
+    src/common/pa_types.h
+    src/common/pa_util.h
+    '''
 
     common_sources = '''
-	src/common/pa_allocation.c
-	src/common/pa_converters.c
-	src/common/pa_cpuload.c
-	src/common/pa_debugprint.c
-	src/common/pa_dither.c
-	src/common/pa_front.c
-	src/common/pa_process.c
-	src/common/pa_ringbuffer.c
-	src/common/pa_stream.c
-	src/common/pa_trace.c
-	'''
+    src/common/pa_allocation.c
+    src/common/pa_converters.c
+    src/common/pa_cpuload.c
+    src/common/pa_debugprint.c
+    src/common/pa_dither.c
+    src/common/pa_front.c
+    src/common/pa_process.c
+    src/common/pa_ringbuffer.c
+    src/common/pa_stream.c
+    src/common/pa_trace.c
+    '''
 
     windows_sources = '''
-	src/os/win/pa_win_hostapis.c
-	src/os/win/pa_win_util.c
-	src/os/win/pa_win_waveformat.c
-	src/os/win/pa_win_coinitialize.c
-	src/os/win/pa_x86_plain_converters.c
-	'''
+    src/os/win/pa_win_hostapis.c
+    src/os/win/pa_win_util.c
+    src/os/win/pa_win_waveformat.c
+    src/os/win/pa_win_coinitialize.c
+    src/os/win/pa_x86_plain_converters.c
+    '''
 
     wmme_includes = '''
-	include/pa_win_wmme.h
-	'''
+    include/pa_win_wmme.h
+    '''
 
     wmme_sources = '''
-	src/hostapi/wmme/pa_win_wmme.c
-	'''
+    src/hostapi/wmme/pa_win_wmme.c
+    '''
 
     dsound_includes = '''
-	include/pa_win_ds.h
-	src/hostapi/dsound/pa_win_ds_dynlink.h
-	'''
+    include/pa_win_ds.h
+    src/hostapi/dsound/pa_win_ds_dynlink.h
+    '''
 
     dsound_sources = '''
     src/hostapi/dsound/pa_win_ds.c
     src/hostapi/dsound/pa_win_ds_dynlink.c
-	'''
+    '''
 
     wdmks_includes = '''
     include/pa_win_wdmks.h
-	'''
+    '''
 
     wdmks_sources = '''
     src/hostapi/wdmks/pa_win_wdmks.c
-	'''
+    '''
 
     wdmks_device_info_sources = '''
     src/os/win/pa_win_wdmks_utils.c
-	'''
+    '''
 
     wasapi_sources = '''
-	src/hostapi/wasapi/pa_win_wasapi.c
-	'''
+    src/hostapi/wasapi/pa_win_wasapi.c
+    '''
 
     asio_sources = '''
     src/hostapi/asio/pa_asio.cpp
     src/hostapi/asio/iasiothiscallresolver.cpp
-	'''
+    '''
 
     asio_sdk_sources = '''
     ../ASIOSDK2/common/asio.cpp
     ../ASIOSDK2/host/pc/asiolist.cpp
     ../ASIOSDK2/host/asiodrivers.cpp
-	'''
+    '''
 
     if bld.env.ENABLE_DEBUG_OUTPUT:
         use_defines += ['PA_ENABLE_DEBUG_OUTPUT']
@@ -286,57 +291,57 @@ def build(bld):
 
     if bld.env.WITH_TESTS:
         test_sources = '''
-			test/pa_minlat.c
-			test/patest1.c
-			test/patest_buffer.c
-			test/patest_callbackstop.c
-			test/patest_clip.c
-			test/patest_converters.c
-			test/patest_dither.c
-			test/patest_hang.c
-			test/patest_in_overflow.c
-			test/patest_latency.c
-			test/patest_leftright.c
-			test/patest_longsine.c
-			test/patest_many.c
-			test/patest_maxsines.c
-			test/patest_mono.c
-			test/patest_multi_sine.c
-			test/patest_out_underflow.c
-			test/patest_prime.c
-			test/patest_read_record.c
-			test/patest_ringmix.c
-			test/patest_sine8.c
-			test/patest_sine_channelmaps.c
-			test/patest_sine_formats.c
-			test/patest_sine_srate.c
-			test/patest_sine_time.c
-			test/patest_start_stop.c
-			test/patest_stop.c
-			test/patest_stop_playout.c
-			test/patest_suggested_vs_streaminfo_latency.c
-			test/patest_sync.c
-			test/patest_timing.c
-			test/patest_toomanysines.c
-			test/patest_two_rates.c
-			test/patest_underflow.c
-			test/patest_wire.c
-			test/patest_write_stop.c
-			'''.split()
+        test/pa_minlat.c
+        test/patest1.c
+        test/patest_buffer.c
+        test/patest_callbackstop.c
+        test/patest_clip.c
+        test/patest_converters.c
+        test/patest_dither.c
+        test/patest_hang.c
+        test/patest_in_overflow.c
+        test/patest_latency.c
+        test/patest_leftright.c
+        test/patest_longsine.c
+        test/patest_many.c
+        test/patest_maxsines.c
+        test/patest_mono.c
+        test/patest_multi_sine.c
+        test/patest_out_underflow.c
+        test/patest_prime.c
+        test/patest_read_record.c
+        test/patest_ringmix.c
+        test/patest_sine8.c
+        test/patest_sine_channelmaps.c
+        test/patest_sine_formats.c
+        test/patest_sine_srate.c
+        test/patest_sine_time.c
+        test/patest_start_stop.c
+        test/patest_stop.c
+        test/patest_stop_playout.c
+        test/patest_suggested_vs_streaminfo_latency.c
+        test/patest_sync.c
+        test/patest_timing.c
+        test/patest_toomanysines.c
+        test/patest_two_rates.c
+        test/patest_underflow.c
+        test/patest_wire.c
+        test/patest_write_stop.c
+        '''.split()
 
         wmme_test_sources = '''
-			test/patest_wmme_find_best_latency_params.c
-			test/patest_wmme_low_level_latency_params.c
-			'''.split()
+        test/patest_wmme_find_best_latency_params.c
+        test/patest_wmme_low_level_latency_params.c
+        '''.split()
 
         if bld.env.WITH_WMME:
             test_sources += wmme_test_sources
 
         dsound_test_sources = '''
-			test/patest_dsound_find_best_latency_params.c
-			test/patest_dsound_low_level_latency_params.c
-			test/patest_dsound_surround.c
-			'''.split()
+        test/patest_dsound_find_best_latency_params.c
+        test/patest_dsound_low_level_latency_params.c
+        test/patest_dsound_surround.c
+        '''.split()
 
         if bld.env.WITH_DIRECTX:
             test_sources += dsound_test_sources
@@ -353,8 +358,8 @@ def build(bld):
 
     if bld.env.WITH_EXAMPLES:
         example_sources = '''
-			examples/pa_devs.c
-			'''.split()
+        examples/pa_devs.c
+        '''.split()
 
         for example_src in example_sources:
 
