@@ -268,7 +268,6 @@ def build(bld):
             source=common_sources + windows_sources,
             uselib=uselibs,
             defines=use_defines,
-            install_path='${BINDIR}',
             target='portaudio',
             name='PORTAUDIO_SHARED',
             vnum='2.0.0'
@@ -280,7 +279,6 @@ def build(bld):
             source=common_sources + windows_sources,
             uselib=uselibs,
             defines=use_defines,
-            install_path='${PREFIX}/lib',
             target='portaudio',
             name='PORTAUDIO_STATIC',
             vnum='2.0.0'
