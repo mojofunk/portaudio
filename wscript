@@ -85,6 +85,7 @@ def configure(conf):
     conf.load('host_system')
     conf.load('compiler_flags')
     conf.load('library')
+    conf.load('pkgconfig')
 
     conf.check(lib='ole32', uselib_store='OLE')
     conf.check(lib='winmm', uselib_store='WINMM')
@@ -402,5 +403,4 @@ def build(bld):
         source='portaudio-2.0.pc.in',
         target='portaudio-2.0.pc',
         install_path='${PREFIX}/lib/pkgconfig',
-        dict={'PREFIX': bld.env.PREFIX, 'LIBS': bld.env.LIBS, 'LIBDIR': bld.env.IMPLIBDIR}
     )
