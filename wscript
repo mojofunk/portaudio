@@ -402,5 +402,5 @@ def build(bld):
         source='portaudio-2.0.pc.in',
         target='portaudio-2.0.pc',
         install_path='${PREFIX}/lib/pkgconfig',
-        dict={'PREFIX': bld.env.PREFIX, 'LIBS': bld.env.LIBS, 'libdir': bld.env.IMPLIBDIR}
+        dict={'PREFIX': bld.env.PREFIX, 'LIBS': bld.env.LIBS, 'LIBDIR': bld.env.IMPLIBDIR}
     )

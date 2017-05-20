@@ -1,6 +1,6 @@
 prefix=@PREFIX@
 exec_prefix=@EXEC_PREFIX@
-libdir=@IMPLIBDIR@
+libdir=@LIBDIR@
 includedir=@INCLUDEDIR@
 
 Name: PortAudio
