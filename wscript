@@ -110,9 +110,6 @@ def configure(conf):
 
     conf.env.WITH_ASIO = Options.options.with_asio
 
-    if conf.env.WITH_TESTS or conf.env.WITH_EXAMPLES:
-        conf.env.ENABLE_SHARED = True
-
     if conf.env.WITH_DIRECTX:
         conf.check(lib='user32', uselib_store='USER32')
 
@@ -290,6 +287,13 @@ def build(bld):
             vnum='2.0.0'
         )
 
+    program_uselibs=''
+
+    if bld.env.ENABLE_STATIC:
+        program_uselibs='PORTAUDIO_STATIC'
+    else:
+        program_uselibs='PORTAUDIO_SHARED'
+
     if bld.env.WITH_TESTS:
         test_sources = '''
         test/pa_minlat.c
@@ -351,7 +355,7 @@ def build(bld):
 
             bld.program(
                 includes=['include', 'src/common', 'src/os/win'],
-                use=['PORTAUDIO_SHARED'],
+                use=program_uselibs,
                 source=test_src,
                 uselib=uselibs,
                 target=os.path.splitext(test_src)[0]
@@ -366,7 +370,7 @@ def build(bld):
 
             bld.program(
                 includes=['include', 'src/common', 'src/os/win'],
-                use=['PORTAUDIO_SHARED'],
+                use=program_uselibs,
                 source=example_src,
                 uselib=uselibs,
                 target=os.path.splitext(example_src)[0]
