@@ -125,6 +125,7 @@ def configure(conf):
         conf.load('compiler_cxx')
         conf.check(lib='advapi32', uselib_store='ADVAPI32')
         conf.check(lib='user32', uselib_store='USER32')
+        conf.check(lib='msvcrt', uselib_store='MSVCRT')
 
     define_compiler_flags(conf)
 
@@ -259,7 +260,7 @@ def build(bld):
         windows_sources += asio_sources
         windows_sources += asio_sdk_sources
         use_defines += ['PA_USE_ASIO=1']
-        uselibs += ['ADVAPI32', 'USER32']
+        uselibs += ['ADVAPI32', 'USER32', 'MSVCRT']
         asio_includes = [
             '../ASIOSDK2/common',
             '../ASIOSDK2/host',
