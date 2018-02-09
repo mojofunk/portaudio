@@ -266,13 +266,18 @@ def build(bld):
             '../ASIOSDK2/host',
             '../ASIOSDK2/host/pc']
 
+    defs = []
+
+    if bld.env.TOOLSET_MSVC:
+        defs='portaudio.def',
+
     if bld.env.ENABLE_SHARED:
         bld.shlib(
             includes=['include', 'src/common', 'src/os/win'] + asio_includes,
             source=common_sources + windows_sources,
             uselib=uselibs,
             defines=use_defines,
-            defs='portaudio.def',
+            defs=defs,
             target='portaudio',
             name='PORTAUDIO_SHARED',
             vnum='2.0.0'
